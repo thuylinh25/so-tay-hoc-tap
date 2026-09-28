@@ -2,7 +2,9 @@
 /Tài liệu học/
 /public/files/
 /public/search-index.json
+/public/qa.json
 /src/generated/
+/qa/
 
 # Build output & dependencies
 /node_modules/

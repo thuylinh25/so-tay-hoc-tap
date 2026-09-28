@@ -14,9 +14,9 @@ export const navItems = [
   { href: '/roadmaps', label: 'Lộ trình', icon: Map },
   { href: '/bookmarks', label: 'Bookmark', icon: Bookmark },
   { href: '/notes', label: 'Ghi chú', icon: NotebookPen },
-  { href: '/flashcards', label: 'Flashcards', icon: Layers, soon: true },
-  { href: '/quiz', label: 'Quiz', icon: GraduationCap, soon: true },
-  { href: '/interview', label: 'Phỏng vấn', icon: MessagesSquare, soon: true },
+  { href: '/flashcards', label: 'Flashcards', icon: Layers },
+  { href: '/quiz', label: 'Quiz', icon: GraduationCap },
+  { href: '/interview', label: 'Phỏng vấn', icon: MessagesSquare },
 ] as const;
 
 const OPEN_KEY = 'so-tay-tree-open';
@@ -58,9 +58,7 @@ export function Sidebar() {
                 aria-current={active ? 'page' : undefined}
               >
                 <Icon className="size-4 shrink-0" aria-hidden />
-                <span className="flex-1">{item.label}</span>
-                {'soon' in item && <span className="rounded bg-sunk px-1.5 py-0.5 text-[0.65rem] text-muted">Sắp có</span>}
-              </Link>
+                <span className="flex-1">{item.label}</span>              </Link>
             </li>
           );
         })}

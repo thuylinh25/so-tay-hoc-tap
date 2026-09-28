@@ -221,6 +221,120 @@ function pdfSections(text) {
   return { headings, sections };
 }
 
+// ---------- câu hỏi (flashcards / quiz / phỏng vấn) ----------
+
+// qa/<slug>.md chép tay nguyên văn từ tài liệu <slug>: "# Trang N — Chủ đề" mở một nhóm,
+// mỗi "## …" là một câu hỏi, phần Markdown bên dưới là đáp án.
+function parseQa(md) {
+  const items = [];
+  let group = null;
+  let page = null;
+  let cur = null;
+  let inFence = false;
+  for (const line of md.split(/\r?\n/)) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    const m = !inFence && /^(#{1,2})\s+(.*)$/.exec(line);
+    if (m && m[1] === '#') {
+      const g = /^Trang\s+(\S+)\s+—\s+(.*)$/.exec(m[2].trim());
+      page = g ? g[1] : null;
+      group = g ? g[2] : m[2].trim();
+      cur = null;
+    } else if (m) {
+      cur = { q: m[2].trim(), group, page, lines: [] };
+      items.push(cur);
+    } else {
+      cur?.lines.push(line);
+    }
+  }
+  return items.map(({ lines, ...it }) => ({ ...it, md: lines.join('\n').trim() }));
+}
+
+const inlineHtml = (md) => renderMarkdown(md).html.trim().replace(/^<p>([\s\S]*)<\/p>$/, '$1');
+// Bỏ ký hiệu Markdown nhưng giữ nguyên nội dung trong `code` (vd. `/* */`).
+const stripMd = (s) =>
+  clean(
+    s
+      .split(/(`[^`]*`)/)
+      .map((part, i) => (i % 2 ? part.slice(1, -1) : part.replace(/\*/g, '')))
+      .join(''),
+  );
+
+// Đáp án rút gọn (không code) làm phương án trắc nghiệm; rỗng nếu đáp án chỉ có code.
+function shortAnswer(md) {
+  const text = md
+    .replace(/```[\s\S]*?```/g, '\n')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !/^\|?\s*:?-{3,}/.test(l))
+    .map((l) => (l.startsWith('|') ? l.replace(/^\||\|$/g, '').split('|').map((c) => c.trim()).join(': ') : l.replace(/^[-*]\s+|^\d+\.\s+/, '')))
+    .reduce((acc, l) => (!acc ? l : /[:;.]$/.test(acc) ? `${acc} ${l}` : `${acc}; ${l}`), '');
+  const s = stripMd(text);
+  if (/^Input\b/.test(s)) return ''; // bài toán code: đáp án là code, không làm phương án được
+  if (s.length <= 220) return s;
+  const cut = s.slice(0, 220);
+  return cut.slice(0, cut.lastIndexOf(' ')) + '…';
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Ghi rõ ngữ cảnh cho câu hỏi chưa nhắc tới nó (Markdown thô, trước khi render):
+// "Làm thế nào…?" → "Trong Python, làm thế nào…?"; "Two Sum: …" → "Two Sum (Python): …";
+// câu tiếng Anh hoặc mở đầu bằng từ khoá/tên riêng → thêm "(Python)" ở cuối.
+function withContext(q, ctx) {
+  if (!ctx || new RegExp(`\\b${escapeRe(ctx)}\\b`, 'i').test(q)) return q;
+  const title = /^([^:?`]{2,40}):\s/.exec(q);
+  if (title) return `${title[1]} (${ctx}):${q.slice(title[0].length - 1)}`;
+  const english = /^(How|What|Why|When|Write|Which|Explain)\b/.test(q);
+  // Chỉ viết thường chữ đầu nếu là một từ thường (Làm, Có, Ép…), không phải SELECT, COUNT(), Primary Key…
+  const plainFirst = /^\p{Lu}\p{Ll}*\s+\p{Ll}/u.test(q);
+  if (english || !plainFirst) return `${q} (${ctx})`;
+  return `Trong ${ctx}, ${q[0].toLocaleLowerCase('vi')}${q.slice(1)}`;
+}
+
+function buildQa(docsBySlug, searchDocs, warnings) {
+  const dir = path.join(ROOT, 'qa');
+  const items = [];
+  if (!fs.existsSync(dir)) return items;
+  for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort()) {
+    const slug = f.replace(/\.md$/, '');
+    const doc = docsBySlug.get(slug);
+    if (!doc) {
+      warnings.push(`qa/${f}: không có tài liệu slug "${slug}"`);
+      continue;
+    }
+    const slugger = makeSlugger();
+    const ctx = config.docs.find((d) => d.slug === slug)?.qaContext;
+    for (const it of parseQa(fs.readFileSync(path.join(dir, f), 'utf8'))) {
+      if (!it.md) warnings.push(`qa/${f}: câu "${it.q}" chưa có đáp án`);
+      // id tính từ câu gốc để tiến độ ôn tập không đổi khi thêm/đổi ngữ cảnh.
+      const idText = it.q;
+      it.q = withContext(it.q, ctx);
+      const anchor = doc.kind === 'gallery' && it.page ? `trang-${slugify(it.page)}` : null;
+      const item = {
+        id: `${slug}:${slugger(idText).slice(0, 80)}`,
+        doc: slug,
+        topic: doc.topic,
+        domain: doc.domain,
+        group: it.group,
+        page: it.page,
+        anchor,
+        q: stripMd(it.q),
+        qHtml: inlineHtml(it.q),
+        aHtml: renderMarkdown(it.md).html,
+        short: shortAnswer(it.md),
+      };
+      items.push(item);
+      // Sổ tay ảnh không có text: câu hỏi chép lại giúp tìm kiếm được nội dung bên trong.
+      if (doc.kind === 'gallery') {
+        const topicTitle = config.topics.find((t) => t.id === doc.topic)?.title ?? '';
+        const domainTitle = config.domains.find((x) => x.id === doc.domain)?.title ?? '';
+        searchDocs.push({ id: `${slug}::qa::${items.length}`, slug, anchor, title: doc.title, category: `${domainTitle} › ${topicTitle}`, heading: item.q, text: stripMd(it.md.replace(/```/g, ' ')).slice(0, 2000) });
+      }
+    }
+  }
+  return items;
+}
+
 // ---------- main ----------
 
 function main() {
@@ -347,6 +461,7 @@ function main() {
   for (const d of out) d.related = d.related.filter((s) => slugs.has(s));
   const roadmaps = config.roadmaps.map((r) => ({ ...r, steps: r.steps.filter((s) => slugs.has(s)) }));
   const usedTopics = new Set(out.map((d) => d.topic));
+  const qa = buildQa(new Map(out.map((d) => [d.slug, d])), searchDocs, warnings);
 
   const manifest = {
     generatedAt: new Date().toISOString(),
@@ -358,9 +473,11 @@ function main() {
   fs.mkdirSync(GEN, { recursive: true });
   fs.writeFileSync(path.join(GEN, 'manifest.json'), JSON.stringify(manifest, null, 1));
   fs.writeFileSync(path.join(ROOT, 'public', 'search-index.json'), JSON.stringify(searchDocs));
+  // Đáp án đã render khá nặng → file tĩnh, trang ôn tập tải khi cần thay vì nhúng vào bundle.
+  fs.writeFileSync(path.join(ROOT, 'public', 'qa.json'), JSON.stringify(qa));
 
   const byKind = out.reduce((m, d) => ((m[d.kind] = (m[d.kind] ?? 0) + 1), m), {});
-  console.log(`✓ ${out.length} tài liệu`, byKind, `· ${searchDocs.length} mục tìm kiếm`);
+  console.log(`✓ ${out.length} tài liệu`, byKind, `· ${qa.length} câu hỏi · ${searchDocs.length} mục tìm kiếm`);
   warnings.forEach((w) => console.warn('  ! ' + w));
 }
 

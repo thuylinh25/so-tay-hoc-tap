@@ -23,9 +23,17 @@ npm run dev        # http://localhost:3000
 - Thêm tài liệu mới: chép vào `Tài liệu học/`, rồi chạy lại `npm run content`. File chưa khai báo vẫn hiện trong mục "Chưa phân loại" (script in cảnh báo); muốn xếp đúng chỗ thì thêm một dòng vào `content.config.mjs`.
 - Text trong PDF lấy bằng `pdftotext` (có sẵn trong Git for Windows). Nếu máy không có công cụ này, PDF vẫn xem được, chỉ không tìm kiếm được nội dung.
 
+## Câu hỏi ôn tập (Flashcards / Quiz / Phỏng vấn)
+
+- Câu hỏi + đáp án được chép **nguyên văn** từ tài liệu vào `qa/<slug>.md` (bị gitignore vì là nội dung có bản quyền). Mỗi `# Trang N — Chủ đề` mở một nhóm, mỗi `## …` là một câu hỏi, phần bên dưới là đáp án (Markdown).
+- `npm run content` sinh `public/qa.json`. Với sổ tay ảnh, câu hỏi còn được đưa vào chỉ mục tìm kiếm.
+- `qaContext` trong `content.config.mjs` ghi rõ ngôn ngữ cho câu hỏi chưa nhắc tới ("Trong Python, …").
+- Quiz: phương án sai là đáp án của câu khác cùng tài liệu/chủ đề. Câu có đáp án chỉ là code không vào quiz.
+- Trả lời sai trong Quiz/Phỏng vấn → thẻ vào Flashcards, đến hạn ngay.
+
 ## Dữ liệu cá nhân
 
-Tiến độ, bookmark và ghi chú lưu trong `localStorage` của trình duyệt (`src/lib/store.ts`). Dữ liệu không đồng bộ giữa các máy. Xoá dữ liệu trình duyệt là mất.
+Tiến độ, bookmark, ghi chú và lịch ôn flashcard lưu trong `localStorage` của trình duyệt (`src/lib/store.ts`). Dữ liệu không đồng bộ giữa các máy. Xoá dữ liệu trình duyệt là mất.
 
 ## Deploy lên Cloudflare Pages (riêng tư)
 
@@ -55,5 +63,5 @@ src/lib/store.ts            tiến độ, bookmark, ghi chú (localStorage)
 
 ## Chưa làm
 
-- Flashcards, Quiz, Luyện phỏng vấn, Ask AI (đang là trang "Sắp có")
+- Ask AI
 - OCR cho 162 trang ảnh, để tìm kiếm được nội dung bên trong

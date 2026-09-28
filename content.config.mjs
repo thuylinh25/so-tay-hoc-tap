@@ -6,10 +6,12 @@ export const SOURCE_DIR = 'Tài liệu học';
 export const domains = [
   { id: 'automation', title: 'Automation Testing', description: 'Playwright, locator và phỏng vấn automation — trọng tâm của kho.' },
   { id: 'java', title: 'Java', description: 'Java cho automation, nhập môn và nâng cao.' },
-  { id: 'web', title: 'Web Fundamentals', description: 'HTML, CSS và JavaScript.' },
+  { id: 'languages', title: 'Ngôn ngữ lập trình', description: 'Python, C và C++.' },
+  { id: 'web', title: 'Web Development', description: 'HTML, CSS, JavaScript và backend.' },
   { id: 'database', title: 'Database', description: 'SQL và câu hỏi phỏng vấn.' },
-  { id: 'devtools', title: 'Dev Tools & Cloud', description: 'Git và điện toán đám mây.' },
-  { id: 'cs', title: 'Computer Science', description: 'Kiến trúc máy tính, mạng máy tính.' },
+  { id: 'devtools', title: 'Dev Tools, DevOps & Cloud', description: 'Git, DevOps, Docker, điện toán đám mây và AWS.' },
+  { id: 'data-ai', title: 'Data & AI', description: 'Phân tích dữ liệu, Machine Learning và AI Agent.' },
+  { id: 'cs', title: 'Computer Science', description: 'Kiến trúc máy tính, mạng máy tính, an ninh mạng.' },
   { id: 'other', title: 'Chưa phân loại', description: 'Tài liệu mới chưa được xếp vào taxonomy.' },
 ];
 
@@ -20,19 +22,30 @@ export const topics = [
   { id: 'java-automation', domain: 'java', title: 'Java cho Automation' },
   { id: 'java-intro', domain: 'java', title: 'Nhập môn Java' },
   { id: 'java-full', domain: 'java', title: 'Java cơ bản → nâng cao' },
+  { id: 'python', domain: 'languages', title: 'Python' },
+  { id: 'c', domain: 'languages', title: 'C' },
+  { id: 'cpp', domain: 'languages', title: 'C++' },
   { id: 'html', domain: 'web', title: 'HTML' },
   { id: 'css', domain: 'web', title: 'CSS' },
   { id: 'javascript', domain: 'web', title: 'JavaScript' },
+  { id: 'backend', domain: 'web', title: 'Backend' },
   { id: 'sql', domain: 'database', title: 'SQL' },
   { id: 'git', domain: 'devtools', title: 'Git' },
-  { id: 'cloud', domain: 'devtools', title: 'Cloud Computing' },
+  { id: 'devops', domain: 'devtools', title: 'DevOps' },
+  { id: 'docker', domain: 'devtools', title: 'Docker' },
+  { id: 'cloud', domain: 'devtools', title: 'Cloud Computing & AWS' },
+  { id: 'data-analysis', domain: 'data-ai', title: 'Data Analyst' },
+  { id: 'machine-learning', domain: 'data-ai', title: 'Machine Learning' },
+  { id: 'ai-agent', domain: 'data-ai', title: 'AI Agent' },
   { id: 'architecture', domain: 'cs', title: 'Kiến trúc máy tính' },
   { id: 'networking', domain: 'cs', title: 'Mạng máy tính' },
-  { id: 'machine-learning', domain: 'cs', title: 'Machine Learning' },
+  { id: 'cybersecurity', domain: 'cs', title: 'An ninh mạng' },
   { id: 'uncategorized', domain: 'other', title: 'Khác' },
 ];
 
 // source: đường dẫn tương đối trong SOURCE_DIR (file, hoặc folder với tài liệu dạng ảnh).
+// qaContext: ngôn ngữ/công nghệ của câu hỏi trong qa/<slug>.md; câu nào chưa nhắc tới sẽ được ghi rõ
+// ("Trong Python, …") vì trên flashcard/quiz câu hỏi đứng một mình, không còn tên tài liệu bên cạnh.
 // tags: lesson-series | handbook-images | interview
 export const docs = [
   {
@@ -96,12 +109,27 @@ export const docs = [
   { source: 'Cẩm nang HTML', slug: 'cam-nang-html', title: 'Cẩm nang HTML', topic: 'html', level: 'beginner', tags: ['handbook-images'], note: 'Bộ ảnh gốc thiếu trang 12.', related: ['html-dom-selector'] },
   { source: 'Cẩm nang CSS', slug: 'cam-nang-css', title: 'Cẩm nang CSS', topic: 'css', level: 'beginner', tags: ['handbook-images'], related: ['html-dom-selector'] },
   { source: 'Cẩm nang JavaScript', slug: 'cam-nang-javascript', title: 'Cẩm nang JavaScript', topic: 'javascript', level: 'beginner', tags: ['handbook-images'], related: ['playwright-tu-so-0'] },
-  { source: '50 SQL Interview Q&A', slug: 'sql-50-interview', title: '50 câu phỏng vấn SQL', topic: 'sql', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['automation-interview-3-5-nam'] },
+  { source: '50 SQL Interview Q&A', slug: 'sql-50-interview', qaContext: 'SQL', title: '50 câu phỏng vấn SQL', topic: 'sql', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['automation-interview-3-5-nam'] },
   { source: 'Cẩm nang Git', slug: 'cam-nang-git', title: 'Cẩm nang Git', topic: 'git', level: 'beginner', tags: ['handbook-images'] },
   { source: 'Cẩm nang Cloud Computing', slug: 'cam-nang-cloud-computing', title: 'Cẩm nang Cloud Computing', topic: 'cloud', level: 'beginner', tags: ['handbook-images'] },
   { source: 'Kiến trúc máy tính từ A - Z', slug: 'kien-truc-may-tinh-a-z', title: 'Kiến trúc máy tính từ A - Z', topic: 'architecture', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-kien-truc-may-tinh'] },
   { source: 'Cẩm nang kiến trúc máy tính', slug: 'cam-nang-kien-truc-may-tinh', title: 'Cẩm nang kiến trúc máy tính', subtitle: 'Bản tóm tắt để ôn nhanh', topic: 'architecture', level: 'beginner', tags: ['handbook-images'], related: ['kien-truc-may-tinh-a-z'] },
   { source: 'Cẩm nang mạng máy tính', slug: 'cam-nang-mang-may-tinh', title: 'Cẩm nang mạng máy tính', topic: 'networking', level: 'beginner', tags: ['handbook-images'] },
+  { source: '70 câu hỏi SQL cơ bản đến nâng cao', slug: 'sql-70-cau-hoi', qaContext: 'SQL', title: '70 câu hỏi SQL cơ bản đến nâng cao', topic: 'sql', level: 'intermediate', tags: ['handbook-images', 'interview'], note: 'Bộ ảnh gốc chỉ có 56 câu; trang 13 trùng trang 1.', related: ['sql-50-interview'] },
+  { source: '100 Câu hỏi phỏng vấn Python', slug: 'python-100-phong-van', qaContext: 'Python', title: '100 câu hỏi phỏng vấn Python', topic: 'python', level: 'intermediate', tags: ['handbook-images', 'interview'] },
+  { source: 'Cẩm nang C', slug: 'cam-nang-c', title: 'Cẩm nang C', topic: 'c', level: 'beginner', tags: ['handbook-images'], note: 'Bộ ảnh gốc thiếu trang 10–16.', related: ['cam-nang-cpp'] },
+  { source: 'Cẩm nang C ++', slug: 'cam-nang-cpp', title: 'Cẩm nang C++', topic: 'cpp', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-c'] },
+  { source: '50 Câu hỏi phỏng vấn Backend', slug: 'backend-50-phong-van', title: '50 câu hỏi phỏng vấn Backend', topic: 'backend', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['sql-70-cau-hoi', 'cam-nang-docker'] },
+  { source: 'Cẩm nang  Devops', slug: 'cam-nang-devops', title: 'Cẩm nang DevOps', topic: 'devops', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-docker', 'cam-nang-git', 'cam-nang-aws'] },
+  { source: 'Cẩm nang Docker', slug: 'cam-nang-docker', title: 'Cẩm nang Docker', topic: 'docker', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-devops'] },
+  { source: 'Cẩm nang AWS Fundamentals', slug: 'cam-nang-aws', title: 'Cẩm nang AWS Fundamentals', topic: 'cloud', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-cloud-computing', 'cam-nang-devops'] },
+  { source: 'Cẩm nang Data Analyst', slug: 'cam-nang-data-analyst', title: 'Cẩm nang Data Analyst', topic: 'data-analysis', level: 'beginner', tags: ['handbook-images'], related: ['data-analyst-co-ban-nang-cao', 'sql-70-cau-hoi'] },
+  { source: 'Data Analyst từ cơ bản đến nâng cao', slug: 'data-analyst-co-ban-nang-cao', title: 'Data Analyst từ cơ bản đến nâng cao', topic: 'data-analysis', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-data-analyst'] },
+  { source: 'Cẩm nang Machine Learning', slug: 'cam-nang-machine-learning', title: 'Cẩm nang Machine Learning', topic: 'machine-learning', level: 'beginner', tags: ['handbook-images'], related: ['machine-learning-co-ban-nang-cao'] },
+  { source: 'Machine Leaning từ cơ bản đến nâng cao', slug: 'machine-learning-co-ban-nang-cao', title: 'Machine Learning từ cơ bản đến nâng cao', topic: 'machine-learning', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-machine-learning', 'phong-van-ai-ml'] },
+  { source: 'Cẩm nang phỏng vấn AI-ML', slug: 'phong-van-ai-ml', title: 'Cẩm nang phỏng vấn AI/ML', topic: 'machine-learning', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['machine-learning-co-ban-nang-cao'] },
+  { source: 'AI Agent', slug: 'ai-agent', title: 'AI Agent', topic: 'ai-agent', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-machine-learning'] },
+  { source: 'Cẩm nang Cybersecurity', slug: 'cam-nang-cybersecurity', title: 'Cẩm nang Cybersecurity', topic: 'cybersecurity', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-mang-may-tinh'] },
 ];
 
 // File trong SOURCE_DIR không phải tài liệu học.
@@ -138,6 +166,26 @@ export const roadmaps = [
     id: 'computer-science',
     title: 'Computer Science',
     description: 'Kiến trúc máy tính (bản đầy đủ, rồi bản ôn nhanh) và mạng máy tính.',
-    steps: ['kien-truc-may-tinh-a-z', 'cam-nang-kien-truc-may-tinh', 'cam-nang-mang-may-tinh'],
+    steps: ['kien-truc-may-tinh-a-z', 'cam-nang-kien-truc-may-tinh', 'cam-nang-mang-may-tinh', 'cam-nang-cybersecurity'],
+  },
+  {
+    id: 'devops',
+    title: 'DevOps & Cloud',
+    description: 'Git làm nền, rồi DevOps, Docker và điện toán đám mây với AWS.',
+    steps: ['cam-nang-git', 'cam-nang-devops', 'cam-nang-docker', 'cam-nang-cloud-computing', 'cam-nang-aws'],
+  },
+  {
+    id: 'data-ai',
+    title: 'Data & AI',
+    description: 'Phân tích dữ liệu với SQL, rồi Machine Learning, AI Agent và phỏng vấn AI/ML.',
+    steps: [
+      'cam-nang-data-analyst',
+      'sql-70-cau-hoi',
+      'data-analyst-co-ban-nang-cao',
+      'cam-nang-machine-learning',
+      'machine-learning-co-ban-nang-cao',
+      'ai-agent',
+      'phong-van-ai-ml',
+    ],
   },
 ];

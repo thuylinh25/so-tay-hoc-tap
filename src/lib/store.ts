@@ -31,6 +31,27 @@ export interface Note {
   updatedAt: number;
 }
 
+/** Trạng thái một câu hỏi: lịch flashcard (SM-2 rút gọn) + thống kê đúng/sai từ quiz và phỏng vấn. */
+export interface QaState {
+  due?: number;
+  /** Khoảng cách ôn, tính bằng ngày. */
+  ivl?: number;
+  ease?: number;
+  reps?: number;
+  seen: number;
+  right: number;
+}
+
+export type Rating = 'again' | 'hard' | 'good' | 'easy';
+
+export interface PracticeSession {
+  kind: 'quiz' | 'interview';
+  at: number;
+  scope: string;
+  total: number;
+  right: number;
+}
+
 export interface LearningState {
   v: 1;
   progress: Record<string, DocProgress>;
@@ -38,10 +59,12 @@ export interface LearningState {
   notes: Note[];
   /** Các ngày có học (YYYY-MM-DD, giờ địa phương) để tính chuỗi ngày học. */
   days: string[];
+  qa: Record<string, QaState>;
+  sessions: PracticeSession[];
 }
 
 const KEY = 'so-tay-hoc-tap:v1';
-const EMPTY: LearningState = { v: 1, progress: {}, bookmarks: [], notes: [], days: [] };
+const EMPTY: LearningState = { v: 1, progress: {}, bookmarks: [], notes: [], days: [], qa: {}, sessions: [] };
 
 let state: LearningState = EMPTY;
 let loaded = false;
@@ -199,4 +222,50 @@ export function saveNote(input: { id?: string; docSlug: string; sectionId: strin
 
 export function deleteNote(id: string) {
   update((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== id) }));
+}
+
+// ---------- ôn tập ----------
+
+const DAY = 86_400_000;
+
+/** Khoảng ôn tiếp theo (ngày) nếu chấm `r`; 0 = ôn lại ngay trong lượt này. */
+export function nextInterval(q: QaState | undefined, r: Rating) {
+  const ivl = q?.ivl ?? 0;
+  const ease = q?.ease ?? 2.5;
+  const reps = q?.reps ?? 0;
+  if (r === 'again') return 0;
+  if (r === 'hard') return Math.max(1, Math.round(ivl * 1.2));
+  const good = reps === 0 ? 1 : reps === 1 ? 3 : Math.round(ivl * ease);
+  return r === 'good' ? good : Math.round(Math.max(good, 2) * 1.3);
+}
+
+export function reviewCard(id: string, r: Rating) {
+  update((s) => {
+    const q = s.qa[id];
+    const ivl = nextInterval(q, r);
+    const ease = Math.max(1.3, (q?.ease ?? 2.5) + { again: -0.2, hard: -0.15, good: 0, easy: 0.15 }[r]);
+    const next: QaState = {
+      seen: q?.seen ?? 0,
+      right: q?.right ?? 0,
+      ivl,
+      ease,
+      reps: r === 'again' ? 0 : (q?.reps ?? 0) + 1,
+      due: Date.now() + (ivl === 0 ? 60_000 : ivl * DAY),
+    };
+    return { ...s, days: touchDay(s), qa: { ...s.qa, [id]: next } };
+  });
+}
+
+/** Ghi kết quả một câu trong quiz/phỏng vấn. Câu trả lời sai được đưa vào flashcard, đến hạn ngay. */
+export function recordAnswer(id: string, correct: boolean) {
+  update((s) => {
+    const q = s.qa[id] ?? { seen: 0, right: 0 };
+    const next: QaState = { ...q, seen: q.seen + 1, right: q.right + (correct ? 1 : 0) };
+    if (!correct) Object.assign(next, { due: Date.now(), ivl: 0, reps: 0 });
+    return { ...s, qa: { ...s.qa, [id]: next } };
+  });
+}
+
+export function saveSession(session: Omit<PracticeSession, 'at'>) {
+  update((s) => ({ ...s, days: touchDay(s), sessions: [...s.sessions.slice(-49), { ...session, at: Date.now() }] }));
 }
