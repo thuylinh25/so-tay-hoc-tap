@@ -1,0 +1,25 @@
+# Copyrighted study material and everything derived from it — never commit
+/Tài liệu học/
+/public/files/
+/public/search-index.json
+/src/generated/
+
+# Build output & dependencies
+/node_modules/
+/out/
+/.next/
+/.open-next/
+/.wrangler/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local secrets / machine config
+.env*
+.dev.vars
+.mcp.json
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
