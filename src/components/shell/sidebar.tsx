@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Bookmark, BrainCircuit, ChevronRight, GraduationCap, Home, Layers, Library, Map, MessagesSquare, NotebookPen } from 'lucide-react';
+import { Bookmark, BrainCircuit, ChevronRight, GraduationCap, Home, Layers, Library, Lock, LogOut, Map, MessagesSquare, NotebookPen, Plus } from 'lucide-react';
 import { getDoc } from '@/lib/content';
-import { useMergedContent } from '@/lib/dynamic';
+import { refreshDynamic, useIsAdmin, useMergedContent } from '@/lib/dynamic';
 import { percentDone, useLearning } from '@/lib/store';
 
 export const navItems = [
@@ -26,6 +26,12 @@ export function Sidebar() {
   const pathname = usePathname();
   const learning = useLearning();
   const { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, topicsInDomain } = useMergedContent();
+  const admin = useIsAdmin();
+
+  async function logout() {
+    await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+    await refreshDynamic();
+  }
   const activeSlug = pathname.startsWith('/learn/') ? decodeURIComponent(pathname.split('/')[2] ?? '') : null;
   const activeDoc = activeSlug ? getDoc(activeSlug) : undefined;
   // Mọi nhánh chứa bài đang mở sẽ tự bung (trừ khi người dùng đã tự đóng).
@@ -142,6 +148,29 @@ export function Sidebar() {
             );
           })}
         </ul>
+      </div>
+
+      <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-3">
+        {admin ? (
+          <>
+            <Link href="/new" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink-2 hover:bg-sunk hover:text-ink">
+              <Plus className="size-4 shrink-0" aria-hidden />
+              <span className="flex-1">Bài viết mới</span>
+            </Link>
+            <button type="button" onClick={logout} className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-ink-2 hover:bg-sunk hover:text-ink">
+              <LogOut className="size-4 shrink-0" aria-hidden />
+              <span className="flex-1">Đăng xuất</span>
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/admin"
+            className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 ${pathname.startsWith('/admin') ? 'bg-accent-soft font-medium text-accent' : 'text-ink-2 hover:bg-sunk hover:text-ink'}`}
+          >
+            <Lock className="size-4 shrink-0" aria-hidden />
+            <span className="flex-1">Admin</span>
+          </Link>
+        )}
       </div>
     </nav>
   );
