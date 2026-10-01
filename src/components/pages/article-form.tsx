@@ -7,13 +7,25 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Eye, Pencil, Plus, X } from 'lucide-react';
+import { Eye, Pencil, Plus, Sparkles, X } from 'lucide-react';
 import { categories, docs, domains, levelLabel, type Level } from '@/lib/content';
 import { refreshDynamic, useDynamicState } from '@/lib/dynamic';
 import { slugify } from '@/lib/slug';
 import { PageHeader } from '../ui';
 
 const LEVELS: Level[] = ['beginner', 'intermediate', 'advanced'];
+const LEVEL_MAP: Record<string, Level> = { basic: 'beginner', intermediate: 'intermediate', advanced: 'advanced' };
+
+interface Suggestion {
+  domain: string;
+  category: string;
+  level: string;
+  tags: string[];
+  slug: string;
+  confidence: number;
+  newCategory: boolean;
+  newTags: string[];
+}
 
 export function ArticleForm() {
   const router = useRouter();
@@ -57,6 +69,65 @@ export function ArticleForm() {
   }, [articles]);
 
   const slugClash = slug !== '' && takenSlugs.has(slug);
+
+  // ---- Tự động phân loại (Gemini) ----
+  const domById = useMemo(() => new Map(domains.map((d) => [d.id, d])), []);
+  const [classifying, setClassifying] = useState(false);
+  const [classifyError, setClassifyError] = useState('');
+  const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
+
+  function applySuggestion(r: Suggestion) {
+    if (!r.newCategory && r.domain && domById.has(r.domain)) {
+      const d = domById.get(r.domain)!;
+      setCategory(d.category);
+      setDomain(d.id);
+    }
+    setLevel(LEVEL_MAP[r.level] ?? 'beginner');
+    if (r.tags.length) setTags((prev) => [...new Set([...prev, ...r.tags])]);
+    if (!slug && r.slug) {
+      setSlug(r.slug);
+      setSlugEdited(true);
+    }
+  }
+
+  async function classify() {
+    setClassifyError('');
+    if (!title.trim() && !content.trim()) {
+      setClassifyError('Nhập tiêu đề hoặc nội dung trước.');
+      return;
+    }
+    setClassifying(true);
+    try {
+      const res = await fetch('/api/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          title,
+          content,
+          categories: categories.map((c) => ({ id: c.id, title: c.title })),
+          domains: domains.map((d) => ({ id: d.id, title: d.title, category: d.category })),
+          tags: existingTags,
+        }),
+      });
+      if (res.status === 401) {
+        router.push('/admin');
+        return;
+      }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setClassifyError(d.error ?? 'Phân loại thất bại.');
+        return;
+      }
+      const r = (await res.json()) as Suggestion;
+      setSuggestion(r);
+      if (r.confidence >= 0.6) applySuggestion(r); // tin cậy cao -> tự điền; thấp -> chờ người dùng bấm Áp dụng
+    } catch {
+      setClassifyError('Không gọi được dịch vụ phân loại.');
+    } finally {
+      setClassifying(false);
+    }
+  }
 
   function toggleTag(t: string) {
     setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
@@ -140,6 +211,19 @@ export function ArticleForm() {
           </span>
         </label>
 
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-medium">Phân loại</span>
+          <button
+            type="button"
+            onClick={classify}
+            disabled={classifying}
+            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-accent-soft px-3 py-1.5 text-sm font-medium text-accent hover:opacity-90 disabled:opacity-60"
+          >
+            <Sparkles className="size-4" aria-hidden /> {classifying ? 'Đang phân loại…' : 'Tự động phân loại'}
+          </button>
+        </div>
+        {classifyError && <p className="-mt-3 text-sm text-danger">{classifyError}</p>}
+
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">Nhóm</span>
@@ -162,6 +246,45 @@ export function ArticleForm() {
             </select>
           </label>
         </div>
+
+        {suggestion && (
+          <div className="-mt-2 flex flex-col gap-1.5 rounded-md border border-line bg-sunk p-3 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-medium">✨ Gemini đề xuất · tin cậy {Math.round(suggestion.confidence * 100)}%</span>
+              {suggestion.confidence < 0.6 && (
+                <button type="button" onClick={() => applySuggestion(suggestion)} className="rounded-md border border-accent bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent hover:opacity-90">
+                  Áp dụng
+                </button>
+              )}
+            </div>
+            <ul className="flex flex-col gap-0.5 text-muted">
+              <li>
+                Nhóm/Lĩnh vực:{' '}
+                {suggestion.newCategory ? (
+                  <span className="text-warn">
+                    {suggestion.category} / {suggestion.domain} (mới — chưa có, chọn thủ công)
+                  </span>
+                ) : (
+                  <span className="text-ink-2">
+                    {categories.find((c) => c.id === suggestion.category)?.title ?? suggestion.category} /{' '}
+                    {domById.get(suggestion.domain)?.title ?? suggestion.domain}
+                  </span>
+                )}
+              </li>
+              <li>Level: {levelLabel[LEVEL_MAP[suggestion.level] ?? 'beginner']}</li>
+              {suggestion.tags.length > 0 && (
+                <li>
+                  Tags: {suggestion.tags.join(', ')}
+                  {suggestion.newTags.length > 0 && <span className="text-warn"> (mới: {suggestion.newTags.join(', ')})</span>}
+                </li>
+              )}
+              {suggestion.slug && <li>Slug gợi ý: {suggestion.slug}</li>}
+            </ul>
+            <p className={`text-xs ${suggestion.confidence >= 0.6 ? 'text-success' : 'text-muted'}`}>
+              {suggestion.confidence >= 0.6 ? 'Đã tự điền các trường phù hợp — bạn vẫn sửa được.' : 'Độ tin cậy thấp — kiểm tra rồi bấm Áp dụng.'}
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">Level</span>

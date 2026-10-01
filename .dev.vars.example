@@ -1,0 +1,9 @@
+# Mẫu secret cho `wrangler pages dev` (local). Sao chép thành `.dev.vars` và điền giá trị thật.
+# `.dev.vars` bị gitignore — KHÔNG commit secret thật.
+# Trên production set bằng: npx wrangler pages secret put <TÊN> --project-name so-tay-hoc-tap
+
+ADMIN_PASSWORD=đặt-mật-khẩu-admin
+SESSION_SECRET=chuỗi-ngẫu-nhiên-đủ-dài-để-ký-cookie
+GEMINI_API_KEY=khóa-google-gemini-api
+# GEMINI_MODEL mặc định gemini-3.6-flash (khai trong wrangler.jsonc, không cần ở đây)
+GEMINI_MODEL=gemini-3.6-flash

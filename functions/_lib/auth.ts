@@ -6,6 +6,8 @@ export interface Env {
   ADMIN_PASSWORD: string;
   SESSION_SECRET: string;
   ASSETS: Fetcher;
+  GEMINI_API_KEY?: string;
+  GEMINI_MODEL?: string;
 }
 
 export interface Ctx<P extends string = string> {
@@ -97,3 +99,4 @@ export function json(data: unknown, init: ResponseInit = {}): Response {
 
 export const unauthorized = () => json({ error: 'unauthorized' }, { status: 401 });
 export const badRequest = (msg: string) => json({ error: msg }, { status: 400 });
+export const tooMany = () => json({ error: 'Quá nhiều yêu cầu, thử lại sau.' }, { status: 429 });

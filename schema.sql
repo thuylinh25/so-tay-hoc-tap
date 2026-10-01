@@ -15,3 +15,10 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_articles_domain ON articles(domain);
+
+-- Rate limit cho endpoint tốn phí (classify): mỗi bucket (IP) 1 cửa sổ thời gian.
+CREATE TABLE IF NOT EXISTS rate_limit (
+  bucket  TEXT PRIMARY KEY,
+  count   INTEGER NOT NULL,
+  resetAt INTEGER NOT NULL
+);
