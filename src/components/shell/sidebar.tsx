@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Bookmark, BrainCircuit, ChevronRight, GraduationCap, Home, Layers, Library, Map, MessagesSquare, NotebookPen } from 'lucide-react';
-import { domains, docsInDomain } from '@/lib/content';
+import { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, getDoc, topicsInDomain, type Doc } from '@/lib/content';
 import { percentDone, statusOf, useLearning } from '@/lib/store';
 import { StatusIcon } from '../ui';
 
@@ -20,12 +20,15 @@ export const navItems = [
 ] as const;
 
 const OPEN_KEY = 'so-tay-tree-open';
+const SUBLIST = 'mb-1 ml-[1.05rem] flex flex-col gap-0.5 border-l border-line pl-2';
 
 export function Sidebar() {
   const pathname = usePathname();
   const learning = useLearning();
   const activeSlug = pathname.startsWith('/learn/') ? decodeURIComponent(pathname.split('/')[2] ?? '') : null;
-  const activeDomain = activeSlug ? docsInDomainOf(activeSlug) : null;
+  const activeDoc = activeSlug ? getDoc(activeSlug) : undefined;
+  // Mọi nhánh chứa bài đang mở sẽ tự bung (trừ khi người dùng đã tự đóng).
+  const activeTrail = new Set<string>(activeDoc ? [activeDoc.category, activeDoc.domain, activeDoc.topic] : []);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -34,15 +37,48 @@ export function Sidebar() {
     } catch {}
   }, []);
 
+  const isOpen = (id: string) => open[id] ?? activeTrail.has(id);
   const toggle = (id: string) =>
     setOpen((o) => {
-      const next = { ...o, [id]: !isOpen(o, id) };
+      const next = { ...o, [id]: !(o[id] ?? activeTrail.has(id)) };
       try {
         localStorage.setItem(OPEN_KEY, JSON.stringify(next));
       } catch {}
       return next;
     });
-  const isOpen = (o: Record<string, boolean>, id: string) => o[id] ?? id === activeDomain;
+
+  function DocLink({ d }: { d: Doc }) {
+    const active = d.slug === activeSlug;
+    return (
+      <li>
+        <Link
+          href={`/learn/${d.slug}`}
+          className={`flex items-start gap-2 rounded-md px-2 py-1.5 ${active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:bg-sunk hover:text-ink'}`}
+          aria-current={active ? 'page' : undefined}
+        >
+          <StatusIcon status={statusOf(learning, d.slug)} className="mt-0.5 size-3.5 shrink-0" />
+          <span className="leading-snug">{d.title}</span>
+        </Link>
+      </li>
+    );
+  }
+
+  function Row({ id, title, slugs, weight }: { id: string; title: string; slugs: string[]; weight: string }) {
+    const expanded = isOpen(id);
+    const pct = percentDone(learning, slugs);
+    return (
+      <button
+        type="button"
+        onClick={() => toggle(id)}
+        aria-expanded={expanded}
+        className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-ink-2 hover:bg-sunk hover:text-ink"
+      >
+        <ChevronRight className={`size-3.5 shrink-0 text-muted transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden />
+        <span className={`flex-1 ${weight}`}>{title}</span>
+        <span className="tabular text-xs text-muted">{pct > 0 ? `${pct}%` : slugs.length}</span>
+      </button>
+    );
+  }
 
   return (
     <nav className="flex flex-col gap-6 px-3 py-4 text-sm" aria-label="Điều hướng chính">
@@ -58,7 +94,8 @@ export function Sidebar() {
                 aria-current={active ? 'page' : undefined}
               >
                 <Icon className="size-4 shrink-0" aria-hidden />
-                <span className="flex-1">{item.label}</span>              </Link>
+                <span className="flex-1">{item.label}</span>
+              </Link>
             </li>
           );
         })}
@@ -69,39 +106,47 @@ export function Sidebar() {
           <BrainCircuit className="size-3.5" aria-hidden /> Chủ đề
         </div>
         <ul className="flex flex-col gap-0.5">
-          {domains.map((dm) => {
-            const list = docsInDomain(dm.id);
-            const expanded = isOpen(open, dm.id);
-            const pct = percentDone(
-              learning,
-              list.map((d) => d.slug),
-            );
+          {categories.map((cat) => {
+            const catDocs = docsInCategory(cat.id);
+            if (!catDocs.length) return null;
             return (
-              <li key={dm.id}>
-                <button
-                  type="button"
-                  onClick={() => toggle(dm.id)}
-                  aria-expanded={expanded}
-                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-ink-2 hover:bg-sunk hover:text-ink"
-                >
-                  <ChevronRight className={`size-3.5 shrink-0 text-muted transition-transform ${expanded ? 'rotate-90' : ''}`} aria-hidden />
-                  <span className="flex-1 font-medium">{dm.title}</span>
-                  <span className="tabular text-xs text-muted">{pct > 0 ? `${pct}%` : list.length}</span>
-                </button>
-                {expanded && (
-                  <ul className="mb-1 ml-[1.05rem] flex flex-col gap-0.5 border-l border-line pl-2">
-                    {list.map((d) => {
-                      const active = d.slug === activeSlug;
+              <li key={cat.id}>
+                <Row id={cat.id} title={cat.title} slugs={catDocs.map((d) => d.slug)} weight="font-semibold" />
+                {isOpen(cat.id) && cat.layout === 'flat' && (
+                  <ul className={SUBLIST}>
+                    {catDocs.map((d) => (
+                      <DocLink key={d.slug} d={d} />
+                    ))}
+                  </ul>
+                )}
+                {isOpen(cat.id) && cat.layout !== 'flat' && (
+                  <ul className={SUBLIST}>
+                    {domainsInCategory(cat.id).map((dm) => {
+                      const dmDocs = docsInDomain(dm.id);
+                      if (!dmDocs.length) return null;
                       return (
-                        <li key={d.slug}>
-                          <Link
-                            href={`/learn/${d.slug}`}
-                            className={`flex items-start gap-2 rounded-md px-2 py-1.5 ${active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:bg-sunk hover:text-ink'}`}
-                            aria-current={active ? 'page' : undefined}
-                          >
-                            <StatusIcon status={statusOf(learning, d.slug)} className="mt-0.5 size-3.5 shrink-0" />
-                            <span className="leading-snug">{d.title}</span>
-                          </Link>
+                        <li key={dm.id}>
+                          <Row id={dm.id} title={dm.title} slugs={dmDocs.map((d) => d.slug)} weight="font-medium" />
+                          {isOpen(dm.id) && (
+                            <ul className={SUBLIST}>
+                              {topicsInDomain(dm.id).map((t) => {
+                                const tDocs = docsInTopic(t.id);
+                                if (!tDocs.length) return null;
+                                return (
+                                  <li key={t.id}>
+                                    <Row id={t.id} title={t.title} slugs={tDocs.map((d) => d.slug)} weight="" />
+                                    {isOpen(t.id) && (
+                                      <ul className={SUBLIST}>
+                                        {tDocs.map((d) => (
+                                          <DocLink key={d.slug} d={d} />
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )}
                         </li>
                       );
                     })}
@@ -114,8 +159,4 @@ export function Sidebar() {
       </div>
     </nav>
   );
-}
-
-function docsInDomainOf(slug: string) {
-  return domains.find((dm) => docsInDomain(dm.id).some((d) => d.slug === slug))?.id ?? null;
 }

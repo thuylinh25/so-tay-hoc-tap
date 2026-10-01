@@ -3,32 +3,37 @@
 
 export const SOURCE_DIR = 'Tài liệu học';
 
+// Cấp cao nhất của cây Chủ đề.
+// layout: 'tree'  → category chứa domain → topic → bài (phân cấp đầy đủ).
+// layout: 'flat'  → bài nằm trực tiếp dưới category (không ép topic); phân loại sâu dùng tags của từng bài.
+export const categories = [
+  { id: 'lap-trinh', title: 'Lập trình', layout: 'tree', description: 'Automation, ngôn ngữ, web, database, DevOps, data/AI và khoa học máy tính.' },
+  { id: 'suc-khoe', title: 'Sức khỏe', layout: 'flat', description: 'Kiến thức sức khỏe sưu tập tự do. Tài liệu giáo dục, không thay thế chẩn đoán hoặc điều trị y tế.' },
+];
+
 export const domains = [
-  { id: 'automation', title: 'Automation Testing', description: 'Playwright, locator và phỏng vấn automation — trọng tâm của kho.' },
-  { id: 'java', title: 'Java', description: 'Java cho automation, nhập môn và nâng cao.' },
-  { id: 'languages', title: 'Ngôn ngữ lập trình', description: 'Python, C và C++.' },
-  { id: 'web', title: 'Web Development', description: 'HTML, CSS, JavaScript và backend.' },
-  { id: 'database', title: 'Database', description: 'SQL và câu hỏi phỏng vấn.' },
-  { id: 'devtools', title: 'Dev Tools, DevOps & Cloud', description: 'Git, DevOps, Docker, điện toán đám mây và AWS.' },
-  { id: 'data-ai', title: 'Data & AI', description: 'Phân tích dữ liệu, Machine Learning và AI Agent.' },
-  { id: 'cs', title: 'Computer Science', description: 'Kiến trúc máy tính, mạng máy tính, an ninh mạng.' },
-  { id: 'suc-khoe', title: 'Sức khỏe', description: 'Giải phẫu và kiến thức sức khỏe. Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế.' },
-  { id: 'other', title: 'Chưa phân loại', description: 'Tài liệu mới chưa được xếp vào taxonomy.' },
+  { id: 'automation', category: 'lap-trinh', title: 'Automation Testing', description: 'Playwright, locator và phỏng vấn automation — trọng tâm của kho.' },
+  { id: 'languages', category: 'lap-trinh', title: 'Ngôn ngữ lập trình', description: 'Java, JavaScript, TypeScript, Python, C và C++.' },
+  { id: 'web', category: 'lap-trinh', title: 'Web Development', description: 'HTML, CSS và backend.' },
+  { id: 'database', category: 'lap-trinh', title: 'Database', description: 'SQL và câu hỏi phỏng vấn.' },
+  { id: 'devtools', category: 'lap-trinh', title: 'Dev Tools, DevOps & Cloud', description: 'Git, DevOps, Docker, điện toán đám mây và AWS.' },
+  { id: 'data-ai', category: 'lap-trinh', title: 'Data & AI', description: 'Phân tích dữ liệu, Machine Learning và AI Agent.' },
+  { id: 'cs', category: 'lap-trinh', title: 'Computer Science', description: 'Kiến trúc máy tính, mạng máy tính, an ninh mạng.' },
+  { id: 'other', category: 'lap-trinh', title: 'Chưa phân loại', description: 'Tài liệu mới chưa được xếp vào taxonomy.' },
 ];
 
 export const topics = [
   { id: 'playwright', domain: 'automation', title: 'Playwright' },
   { id: 'locator', domain: 'automation', title: 'Locator & Selector' },
   { id: 'automation-interview', domain: 'automation', title: 'Phỏng vấn Automation' },
-  { id: 'java-automation', domain: 'java', title: 'Java cho Automation' },
-  { id: 'java-intro', domain: 'java', title: 'Nhập môn Java' },
-  { id: 'java-full', domain: 'java', title: 'Java cơ bản → nâng cao' },
+  { id: 'java', domain: 'languages', title: 'Java' },
+  { id: 'javascript', domain: 'languages', title: 'JavaScript' },
+  { id: 'typescript', domain: 'languages', title: 'TypeScript' },
   { id: 'python', domain: 'languages', title: 'Python' },
   { id: 'c', domain: 'languages', title: 'C' },
   { id: 'cpp', domain: 'languages', title: 'C++' },
   { id: 'html', domain: 'web', title: 'HTML' },
   { id: 'css', domain: 'web', title: 'CSS' },
-  { id: 'javascript', domain: 'web', title: 'JavaScript' },
   { id: 'backend', domain: 'web', title: 'Backend' },
   { id: 'sql', domain: 'database', title: 'SQL' },
   { id: 'git', domain: 'devtools', title: 'Git' },
@@ -41,14 +46,15 @@ export const topics = [
   { id: 'architecture', domain: 'cs', title: 'Kiến trúc máy tính' },
   { id: 'networking', domain: 'cs', title: 'Mạng máy tính' },
   { id: 'cybersecurity', domain: 'cs', title: 'An ninh mạng' },
-  { id: 'giai-phau-cot-song', domain: 'suc-khoe', title: 'Giải phẫu & Tác động cột sống' },
   { id: 'uncategorized', domain: 'other', title: 'Khác' },
 ];
 
 // source: đường dẫn tương đối trong SOURCE_DIR (file, hoặc folder với tài liệu dạng ảnh).
+// Mỗi bài thuộc một category qua topic (topic → domain → category). Bài thuộc category layout 'flat'
+// (vd Sức khỏe) khai `category` trực tiếp và BỎ `topic`; build tự gán domain/topic ảo để tra cứu.
 // qaContext: ngôn ngữ/công nghệ của câu hỏi trong qa/<slug>.md; câu nào chưa nhắc tới sẽ được ghi rõ
 // ("Trong Python, …") vì trên flashcard/quiz câu hỏi đứng một mình, không còn tên tài liệu bên cạnh.
-// tags: lesson-series | handbook-images | interview
+// tags: lesson-series | handbook-images | interview; bài 'flat' thêm tag nội dung để tìm kiếm.
 export const docs = [
   {
     source: 'Playwright-tu-so-0.html',
@@ -83,7 +89,7 @@ export const docs = [
     source: 'java-giai-doan-1.md',
     slug: 'java-gd1-cu-phap',
     title: 'Giai đoạn 1: Cú pháp nền tảng',
-    topic: 'java-automation',
+    topic: 'java',
     level: 'beginner',
     tags: ['lesson-series'],
     related: ['cam-nang-java'],
@@ -92,7 +98,7 @@ export const docs = [
     source: 'java-giai-doan-2-oop.md',
     slug: 'java-gd2-oop',
     title: 'Giai đoạn 2: OOP',
-    topic: 'java-automation',
+    topic: 'java',
     level: 'intermediate',
     tags: ['lesson-series'],
     related: ['java-co-ban-nang-cao', 'automation-interview-3-5-nam'],
@@ -101,13 +107,13 @@ export const docs = [
     source: 'java-giai-doan-3-collections-exception.md',
     slug: 'java-gd3-collections-exception',
     title: 'Giai đoạn 3: Collections và Exception',
-    topic: 'java-automation',
+    topic: 'java',
     level: 'intermediate',
     tags: ['lesson-series'],
     related: ['java-co-ban-nang-cao', 'automation-interview-3-5-nam'],
   },
-  { source: 'Cẩm Nang Java', slug: 'cam-nang-java', title: 'Cẩm nang nhập môn Java', topic: 'java-intro', level: 'beginner', tags: ['handbook-images'], related: ['java-co-ban-nang-cao', 'java-gd1-cu-phap'] },
-  { source: 'Java từ cơ bản đến nâng cao', slug: 'java-co-ban-nang-cao', title: 'Java từ cơ bản đến nâng cao', topic: 'java-full', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-java', 'java-gd2-oop'] },
+  { source: 'Cẩm Nang Java', slug: 'cam-nang-java', title: 'Cẩm nang nhập môn Java', topic: 'java', level: 'beginner', tags: ['handbook-images'], related: ['java-co-ban-nang-cao', 'java-gd1-cu-phap'] },
+  { source: 'Java từ cơ bản đến nâng cao', slug: 'java-co-ban-nang-cao', title: 'Java từ cơ bản đến nâng cao', topic: 'java', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-java', 'java-gd2-oop'] },
   { source: 'Cẩm nang HTML', slug: 'cam-nang-html', title: 'Cẩm nang HTML', topic: 'html', level: 'beginner', tags: ['handbook-images'], note: 'Bộ ảnh gốc thiếu trang 12.', related: ['html-dom-selector'] },
   { source: 'Cẩm nang CSS', slug: 'cam-nang-css', title: 'Cẩm nang CSS', topic: 'css', level: 'beginner', tags: ['handbook-images'], related: ['html-dom-selector'] },
   { source: 'Cẩm nang JavaScript', slug: 'cam-nang-javascript', title: 'Cẩm nang JavaScript', topic: 'javascript', level: 'beginner', tags: ['handbook-images'], related: ['playwright-tu-so-0'] },
@@ -132,8 +138,8 @@ export const docs = [
   { source: 'Cẩm nang phỏng vấn AI-ML', slug: 'phong-van-ai-ml', title: 'Cẩm nang phỏng vấn AI/ML', topic: 'machine-learning', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['machine-learning-co-ban-nang-cao'] },
   { source: 'AI Agent', slug: 'ai-agent', title: 'AI Agent', topic: 'ai-agent', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-machine-learning'] },
   { source: 'Cẩm nang Cybersecurity', slug: 'cam-nang-cybersecurity', title: 'Cẩm nang Cybersecurity', topic: 'cybersecurity', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-mang-may-tinh'] },
-  { source: 'Cơ Ức Đòn Chũm (SCM)/TÓM TẮT SINH ĐỘNG - SCM.md', slug: 'scm-tom-tat', title: 'Cơ Ức–Đòn–Chũm (SCM) — Tóm tắt sinh động', subtitle: 'Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế', topic: 'giai-phau-cot-song', level: 'beginner', tags: ['lesson-series'], related: ['scm-infographic'] },
-  { source: 'Cơ Ức Đòn Chũm (SCM)', slug: 'scm-infographic', title: 'Cơ Ức–Đòn–Chũm (SCM) — Infographic gốc', topic: 'giai-phau-cot-song', level: 'beginner', tags: ['handbook-images'], note: 'Ảnh gốc: 1,2,4,5,7 (bộ gốc không có 3 và 6).', related: ['scm-tom-tat'] },
+  { source: 'Cơ Ức Đòn Chũm (SCM)/TÓM TẮT SINH ĐỘNG - SCM.md', slug: 'scm-tom-tat', title: 'Cơ Ức–Đòn–Chũm (SCM) — Tóm tắt sinh động', subtitle: 'Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế', category: 'suc-khoe', level: 'beginner', tags: ['cột sống', 'cơ SCM', 'cổ vai gáy', 'giải phẫu', 'tác động cột sống'], related: ['scm-infographic'] },
+  { source: 'Cơ Ức Đòn Chũm (SCM)', slug: 'scm-infographic', title: 'Cơ Ức–Đòn–Chũm (SCM) — Infographic gốc', category: 'suc-khoe', level: 'beginner', tags: ['cột sống', 'cơ SCM', 'cổ vai gáy', 'giải phẫu'], note: 'Ảnh gốc: 1,2,4,5,7 (bộ gốc không có 3 và 6).', related: ['scm-tom-tat'] },
 ];
 
 // File trong SOURCE_DIR không phải tài liệu học.

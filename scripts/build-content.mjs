@@ -328,7 +328,7 @@ function buildQa(docsBySlug, searchDocs, warnings) {
       if (doc.kind === 'gallery') {
         const topicTitle = config.topics.find((t) => t.id === doc.topic)?.title ?? '';
         const domainTitle = config.domains.find((x) => x.id === doc.domain)?.title ?? '';
-        searchDocs.push({ id: `${slug}::qa::${items.length}`, slug, anchor, title: doc.title, category: `${domainTitle} › ${topicTitle}`, heading: item.q, text: stripMd(it.md.replace(/```/g, ' ')).slice(0, 2000) });
+        searchDocs.push({ id: `${slug}::qa::${items.length}`, slug, anchor, title: doc.title, category: `${domainTitle} › ${topicTitle}`, tags: (doc.tags ?? []).join(' '), heading: item.q, text: stripMd(it.md.replace(/```/g, ' ')).slice(0, 2000) });
       }
     }
   }
@@ -346,6 +346,17 @@ function main() {
   resetDir(PUBLIC_FILES);
 
   const topicById = new Map(config.topics.map((t) => [t.id, t]));
+  const domainById = new Map(config.domains.map((d) => [d.id, d]));
+  const categoryById = new Map(config.categories.map((c) => [c.id, c]));
+
+  // Category layout 'flat' (vd Sức khỏe): bài nằm trực tiếp dưới category, không có topic.
+  // Sinh domain + topic ảo id = category id để getDomain/getTopic/qa.ts vẫn tra cứu được.
+  for (const c of config.categories) {
+    if (c.layout !== 'flat') continue;
+    if (!domainById.has(c.id)) domainById.set(c.id, { id: c.id, category: c.id, title: c.title, description: c.description ?? '' });
+    if (!topicById.has(c.id)) topicById.set(c.id, { id: c.id, domain: c.id, title: c.title });
+  }
+
   const configured = new Map(config.docs.map((d) => [d.source, d]));
   const attachmentSources = new Set(config.docs.flatMap((d) => (d.attachments ?? []).map((a) => a.source)));
   const out = [];
@@ -377,14 +388,20 @@ function main() {
       warnings.push(`Không tìm thấy: ${d.source}`);
       continue;
     }
-    const topic = topicById.get(d.topic);
-    if (!topic) throw new Error(`Topic không tồn tại: ${d.topic} (${d.source})`);
+    // Bài 'flat' khai `category` trực tiếp, không có topic → dùng topic ảo id = category id.
+    const topicId = d.topic ?? d.category;
+    const topic = topicById.get(topicId);
+    if (!topic) throw new Error(`Topic không tồn tại: ${d.topic ?? d.category} (${d.source})`);
+    const domainOf = domainById.get(topic.domain);
+    if (!domainOf) throw new Error(`Domain không tồn tại: ${topic.domain} (${d.source})`);
+    if (!categoryById.has(domainOf.category)) throw new Error(`Category không tồn tại: ${domainOf.category} (${d.source})`);
     const meta = {
       slug: d.slug,
       title: d.title,
       subtitle: d.subtitle ?? null,
+      category: domainOf.category,
       domain: topic.domain,
-      topic: d.topic,
+      topic: topic.id,
       level: d.level,
       tags: d.tags ?? [],
       order: order++,
@@ -448,11 +465,14 @@ function main() {
       .map((a) => ({ label: a.label, url: copyFile(path.join(SRC, a.source), path.join(d.slug, slugify(a.source.replace(/\.[^.]+$/, '')) + path.extname(a.source).toLowerCase())) }));
 
     const topicTitle = topic.title;
-    const domainTitle = config.domains.find((x) => x.id === topic.domain)?.title ?? '';
-    searchDocs.push({ id: `${d.slug}`, slug: d.slug, anchor: null, title: d.title, category: `${domainTitle} › ${topicTitle}`, heading: '', text: d.subtitle ?? '' });
+    const domainTitle = domainOf.title;
+    // Bài 'flat' (domain ảo = category): chỉ hiện tên category; bài 'tree': "Lĩnh vực › Chủ đề".
+    const crumb = domainOf.id === meta.category ? (categoryById.get(meta.category)?.title ?? '') : `${domainTitle} › ${topicTitle}`;
+    const tagStr = (d.tags ?? []).join(' ');
+    searchDocs.push({ id: `${d.slug}`, slug: d.slug, anchor: null, title: d.title, category: crumb, tags: tagStr, heading: '', text: d.subtitle ?? '' });
     sections.forEach((s, i) => {
       if (!s.heading && !s.text) return;
-      searchDocs.push({ id: `${d.slug}::${i}`, slug: d.slug, anchor: s.anchor, title: d.title, category: `${domainTitle} › ${topicTitle}`, heading: s.heading, text: s.text.slice(0, 6000) });
+      searchDocs.push({ id: `${d.slug}::${i}`, slug: d.slug, anchor: s.anchor, title: d.title, category: crumb, tags: tagStr, heading: s.heading, text: s.text.slice(0, 6000) });
     });
     out.push(meta);
   }
@@ -461,12 +481,16 @@ function main() {
   for (const d of out) d.related = d.related.filter((s) => slugs.has(s));
   const roadmaps = config.roadmaps.map((r) => ({ ...r, steps: r.steps.filter((s) => slugs.has(s)) }));
   const usedTopics = new Set(out.map((d) => d.topic));
+  const usedDomains = new Set(out.map((d) => d.domain));
+  const usedCategories = new Set(out.map((d) => d.category));
   const qa = buildQa(new Map(out.map((d) => [d.slug, d])), searchDocs, warnings);
 
+  // domainById/topicById gồm cả domain/topic ảo của category 'flat' → manifest phủ cả Sức khỏe.
   const manifest = {
     generatedAt: new Date().toISOString(),
-    domains: config.domains.filter((dm) => out.some((d) => d.domain === dm.id)),
-    topics: config.topics.filter((t) => usedTopics.has(t.id)),
+    categories: config.categories.filter((c) => usedCategories.has(c.id)),
+    domains: [...domainById.values()].filter((dm) => usedDomains.has(dm.id)),
+    topics: [...topicById.values()].filter((t) => usedTopics.has(t.id)),
     docs: out,
     roadmaps,
   };

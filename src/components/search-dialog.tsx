@@ -14,6 +14,7 @@ interface Entry {
   anchor: string | null;
   title: string;
   category: string;
+  tags: string;
   heading: string;
   text: string;
 }
@@ -25,11 +26,11 @@ function loadIndex() {
     .then((r) => r.json() as Promise<Entry[]>)
     .then((entries) => {
       const ms = new MiniSearch<Entry>({
-        fields: ['title', 'category', 'heading', 'text'],
+        fields: ['title', 'category', 'tags', 'heading', 'text'],
         storeFields: ['slug', 'anchor', 'title', 'category', 'heading', 'text'],
         tokenize,
         processTerm: (t) => fold(t),
-        searchOptions: { prefix: true, fuzzy: 0.15, combineWith: 'AND', boost: { title: 4, heading: 2.5, category: 1.5 } },
+        searchOptions: { prefix: true, fuzzy: 0.15, combineWith: 'AND', boost: { title: 4, tags: 3, heading: 2.5, category: 1.5 } },
       });
       ms.addAll(entries);
       return ms;
