@@ -8,7 +8,7 @@ export const SOURCE_DIR = 'Tài liệu học';
 // layout: 'flat'  → bài nằm trực tiếp dưới category (không ép topic); phân loại sâu dùng tags của từng bài.
 export const categories = [
   { id: 'lap-trinh', title: 'Lập trình', layout: 'tree', description: 'Automation, ngôn ngữ, web, database, DevOps, data/AI và khoa học máy tính.' },
-  { id: 'suc-khoe', title: 'Sức khỏe', layout: 'flat', description: 'Kiến thức sức khỏe sưu tập tự do. Tài liệu giáo dục, không thay thế chẩn đoán hoặc điều trị y tế.' },
+  { id: 'suc-khoe', title: 'Sức khỏe', layout: 'tree', description: 'Kiến thức sức khỏe sưu tập tự do. Tài liệu giáo dục, không thay thế chẩn đoán hoặc điều trị y tế.' },
 ];
 
 export const domains = [
@@ -20,6 +20,8 @@ export const domains = [
   { id: 'data-ai', category: 'lap-trinh', title: 'Data & AI', description: 'Phân tích dữ liệu, Machine Learning và AI Agent.' },
   { id: 'cs', category: 'lap-trinh', title: 'Computer Science', description: 'Kiến trúc máy tính, mạng máy tính, an ninh mạng.' },
   { id: 'other', category: 'lap-trinh', title: 'Chưa phân loại', description: 'Tài liệu mới chưa được xếp vào taxonomy.' },
+  // Sức khỏe: subcategory = domain. Thêm nhóm mới (Tác động cột sống, Bấm huyệt…) chỉ cần khai thêm domain + topic ở đây.
+  { id: 'giai-phau', category: 'suc-khoe', title: 'Giải phẫu', description: 'Giải phẫu cơ – xương – mô mềm phục vụ trị liệu và tác động cột sống.' },
 ];
 
 export const topics = [
@@ -47,6 +49,7 @@ export const topics = [
   { id: 'networking', domain: 'cs', title: 'Mạng máy tính' },
   { id: 'cybersecurity', domain: 'cs', title: 'An ninh mạng' },
   { id: 'uncategorized', domain: 'other', title: 'Khác' },
+  { id: 'co-giai-phau', domain: 'giai-phau', title: 'Cơ & giải phẫu học' },
 ];
 
 // source: đường dẫn tương đối trong SOURCE_DIR (file, hoặc folder với tài liệu dạng ảnh).
@@ -138,8 +141,8 @@ export const docs = [
   { source: 'Cẩm nang phỏng vấn AI-ML', slug: 'phong-van-ai-ml', title: 'Cẩm nang phỏng vấn AI/ML', topic: 'machine-learning', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['machine-learning-co-ban-nang-cao'] },
   { source: 'AI Agent', slug: 'ai-agent', title: 'AI Agent', topic: 'ai-agent', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-machine-learning'] },
   { source: 'Cẩm nang Cybersecurity', slug: 'cam-nang-cybersecurity', title: 'Cẩm nang Cybersecurity', topic: 'cybersecurity', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-mang-may-tinh'] },
-  { source: 'Cơ Ức Đòn Chũm (SCM)/TÓM TẮT SINH ĐỘNG - SCM.md', slug: 'scm-tom-tat', title: 'Cơ Ức–Đòn–Chũm (SCM) — Tóm tắt sinh động', subtitle: 'Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế', category: 'suc-khoe', level: 'beginner', tags: ['cột sống', 'cơ SCM', 'cổ vai gáy', 'giải phẫu', 'tác động cột sống'], related: ['scm-infographic'] },
-  { source: 'Cơ Ức Đòn Chũm (SCM)', slug: 'scm-infographic', title: 'Cơ Ức–Đòn–Chũm (SCM) — Infographic gốc', category: 'suc-khoe', level: 'beginner', tags: ['cột sống', 'cơ SCM', 'cổ vai gáy', 'giải phẫu'], note: 'Ảnh gốc: 1,2,4,5,7 (bộ gốc không có 3 và 6).', related: ['scm-tom-tat'] },
+  { source: 'Cơ Ức Đòn Chũm (SCM)/TÓM TẮT SINH ĐỘNG - SCM.md', slug: 'scm-tom-tat', title: 'Cơ Ức–Đòn–Chũm (SCM) — Tóm tắt sinh động', subtitle: 'Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế', topic: 'co-giai-phau', level: 'beginner', tags: ['cột sống', 'cơ SCM', 'cổ vai gáy', 'giải phẫu', 'tác động cột sống'], related: ['scm-infographic'] },
+  { source: 'Cơ Ức Đòn Chũm (SCM)', slug: 'scm-infographic', title: 'Cơ Ức–Đòn–Chũm (SCM) — Infographic gốc', topic: 'co-giai-phau', level: 'beginner', tags: ['cột sống', 'cơ SCM', 'cổ vai gáy', 'giải phẫu'], note: 'Ảnh gốc: 1,2,4,5,7 (bộ gốc không có 3 và 6).', related: ['scm-tom-tat'] },
 ];
 
 // File trong SOURCE_DIR không phải tài liệu học.

@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Bookmark, BrainCircuit, ChevronRight, GraduationCap, Home, Layers, Library, Map, MessagesSquare, NotebookPen } from 'lucide-react';
-import { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, getDoc, topicsInDomain, type Doc } from '@/lib/content';
-import { percentDone, statusOf, useLearning } from '@/lib/store';
-import { StatusIcon } from '../ui';
+import { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, getDoc, topicsInDomain } from '@/lib/content';
+import { percentDone, useLearning } from '@/lib/store';
 
 export const navItems = [
   { href: '/', label: 'Trang chủ', icon: Home },
@@ -47,17 +46,20 @@ export function Sidebar() {
       return next;
     });
 
-  function DocLink({ d }: { d: Doc }) {
-    const active = d.slug === activeSlug;
+  // Lá cuối của sidebar là chủ đề (topic) — không liệt kê bài để sidebar không dài theo số lượng bài.
+  // Bấm vào chủ đề sẽ nhảy tới đúng section lĩnh vực trong Thư viện, nơi các bài được liệt kê.
+  function TopicLink({ id, title, domainId, slugs }: { id: string; title: string; domainId: string; slugs: string[] }) {
+    const active = activeDoc?.topic === id;
+    const pct = percentDone(learning, slugs);
     return (
       <li>
         <Link
-          href={`/learn/${d.slug}`}
-          className={`flex items-start gap-2 rounded-md px-2 py-1.5 ${active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:bg-sunk hover:text-ink'}`}
+          href={`/library#${domainId}`}
+          className={`flex items-center gap-2 rounded-md px-2 py-1.5 ${active ? 'bg-accent-soft text-accent' : 'text-ink-2 hover:bg-sunk hover:text-ink'}`}
           aria-current={active ? 'page' : undefined}
         >
-          <StatusIcon status={statusOf(learning, d.slug)} className="mt-0.5 size-3.5 shrink-0" />
-          <span className="leading-snug">{d.title}</span>
+          <span className="flex-1 leading-snug">{title}</span>
+          <span className="tabular text-xs text-muted">{pct > 0 ? `${pct}%` : slugs.length}</span>
         </Link>
       </li>
     );
@@ -112,14 +114,7 @@ export function Sidebar() {
             return (
               <li key={cat.id}>
                 <Row id={cat.id} title={cat.title} slugs={catDocs.map((d) => d.slug)} weight="font-semibold" />
-                {isOpen(cat.id) && cat.layout === 'flat' && (
-                  <ul className={SUBLIST}>
-                    {catDocs.map((d) => (
-                      <DocLink key={d.slug} d={d} />
-                    ))}
-                  </ul>
-                )}
-                {isOpen(cat.id) && cat.layout !== 'flat' && (
+                {isOpen(cat.id) && (
                   <ul className={SUBLIST}>
                     {domainsInCategory(cat.id).map((dm) => {
                       const dmDocs = docsInDomain(dm.id);
@@ -132,18 +127,7 @@ export function Sidebar() {
                               {topicsInDomain(dm.id).map((t) => {
                                 const tDocs = docsInTopic(t.id);
                                 if (!tDocs.length) return null;
-                                return (
-                                  <li key={t.id}>
-                                    <Row id={t.id} title={t.title} slugs={tDocs.map((d) => d.slug)} weight="" />
-                                    {isOpen(t.id) && (
-                                      <ul className={SUBLIST}>
-                                        {tDocs.map((d) => (
-                                          <DocLink key={d.slug} d={d} />
-                                        ))}
-                                      </ul>
-                                    )}
-                                  </li>
-                                );
+                                return <TopicLink key={t.id} id={t.id} title={t.title} domainId={dm.id} slugs={tDocs.map((d) => d.slug)} />;
                               })}
                             </ul>
                           )}

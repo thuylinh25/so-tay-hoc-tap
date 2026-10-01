@@ -50,7 +50,7 @@ export function Library() {
   );
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-8 sm:px-8">
+    <div className="mx-auto flex max-w-[1080px] flex-col gap-10 px-4 py-8 sm:px-8">
       <PageHeader eyebrow="Thư viện" title="Toàn bộ tài liệu">
         Xếp theo nhóm, lĩnh vực và chủ đề. Bài học (Markdown/HTML) đọc được và tìm được toàn văn; sổ tay dạng ảnh mới tìm được theo tên.
       </PageHeader>
@@ -86,12 +86,12 @@ export function Library() {
         );
         return (
           <div key={cat.id} className="flex flex-col gap-6">
-            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-line pb-2">
+            <div className="flex flex-col gap-2 border-b border-line pb-3">
               <div className="flex flex-col gap-0.5">
                 <h2 className="font-display text-2xl font-semibold">{cat.title}</h2>
                 <p className="text-sm text-muted">{cat.description}</p>
               </div>
-              <div className="flex w-48 items-center gap-2 text-xs text-muted">
+              <div className="flex max-w-sm items-center gap-2 text-xs text-muted">
                 <ProgressBar value={catPct} className="flex-1" />
                 <span className="tabular">{catPct}%</span>
               </div>
@@ -111,12 +111,12 @@ export function Library() {
                 );
                 return (
                   <section key={dm.id} id={dm.id} className="flex scroll-mt-20 flex-col gap-4">
-                    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+                    <div className="flex flex-col gap-1.5">
                       <div className="flex flex-col gap-0.5">
                         <h3 className="font-display text-xl font-semibold">{dm.title}</h3>
                         <p className="text-sm text-muted">{dm.description}</p>
                       </div>
-                      <div className="flex w-48 items-center gap-2 text-xs text-muted">
+                      <div className="flex max-w-xs items-center gap-2 text-xs text-muted">
                         <ProgressBar value={pct} className="flex-1" />
                         <span className="tabular">{pct}%</span>
                       </div>
