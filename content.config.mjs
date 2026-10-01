@@ -12,6 +12,7 @@ export const domains = [
   { id: 'devtools', title: 'Dev Tools, DevOps & Cloud', description: 'Git, DevOps, Docker, điện toán đám mây và AWS.' },
   { id: 'data-ai', title: 'Data & AI', description: 'Phân tích dữ liệu, Machine Learning và AI Agent.' },
   { id: 'cs', title: 'Computer Science', description: 'Kiến trúc máy tính, mạng máy tính, an ninh mạng.' },
+  { id: 'suc-khoe', title: 'Sức khỏe', description: 'Giải phẫu và kiến thức sức khỏe. Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế.' },
   { id: 'other', title: 'Chưa phân loại', description: 'Tài liệu mới chưa được xếp vào taxonomy.' },
 ];
 
@@ -40,6 +41,7 @@ export const topics = [
   { id: 'architecture', domain: 'cs', title: 'Kiến trúc máy tính' },
   { id: 'networking', domain: 'cs', title: 'Mạng máy tính' },
   { id: 'cybersecurity', domain: 'cs', title: 'An ninh mạng' },
+  { id: 'giai-phau-cot-song', domain: 'suc-khoe', title: 'Giải phẫu & Tác động cột sống' },
   { id: 'uncategorized', domain: 'other', title: 'Khác' },
 ];
 
@@ -130,6 +132,8 @@ export const docs = [
   { source: 'Cẩm nang phỏng vấn AI-ML', slug: 'phong-van-ai-ml', title: 'Cẩm nang phỏng vấn AI/ML', topic: 'machine-learning', level: 'intermediate', tags: ['handbook-images', 'interview'], related: ['machine-learning-co-ban-nang-cao'] },
   { source: 'AI Agent', slug: 'ai-agent', title: 'AI Agent', topic: 'ai-agent', level: 'intermediate', tags: ['handbook-images'], related: ['cam-nang-machine-learning'] },
   { source: 'Cẩm nang Cybersecurity', slug: 'cam-nang-cybersecurity', title: 'Cẩm nang Cybersecurity', topic: 'cybersecurity', level: 'beginner', tags: ['handbook-images'], related: ['cam-nang-mang-may-tinh'] },
+  { source: 'Cơ Ức Đòn Chũm (SCM)/TÓM TẮT SINH ĐỘNG - SCM.md', slug: 'scm-tom-tat', title: 'Cơ Ức–Đòn–Chũm (SCM) — Tóm tắt sinh động', subtitle: 'Tài liệu giáo dục, không thay thế chẩn đoán/điều trị y tế', topic: 'giai-phau-cot-song', level: 'beginner', tags: ['lesson-series'], related: ['scm-infographic'] },
+  { source: 'Cơ Ức Đòn Chũm (SCM)', slug: 'scm-infographic', title: 'Cơ Ức–Đòn–Chũm (SCM) — Infographic gốc', topic: 'giai-phau-cot-song', level: 'beginner', tags: ['handbook-images'], note: 'Ảnh gốc: 1,2,4,5,7 (bộ gốc không có 3 và 6).', related: ['scm-tom-tat'] },
 ];
 
 // File trong SOURCE_DIR không phải tài liệu học.
