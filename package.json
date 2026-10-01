@@ -10,7 +10,9 @@
     "prebuild": "npm run content",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "deploy": "npm run build && wrangler pages deploy out --project-name so-tay-hoc-tap --branch main --commit-dirty=true"
+    "db:migrate": "wrangler d1 execute so-tay-hoc-tap-db --remote --file schema.sql",
+    "cf:dev": "npm run build && wrangler pages dev",
+    "deploy": "npm run build && wrangler pages deploy --branch main --commit-dirty=true"
   },
   "dependencies": {
     "lucide-react": "^1.48.0",

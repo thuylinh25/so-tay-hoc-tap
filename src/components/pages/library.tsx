@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Bookmark, SearchX } from 'lucide-react';
-import { categories, docSummary, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, topicsInDomain, type Doc } from '@/lib/content';
+import { Bookmark, Plus, SearchX } from 'lucide-react';
+import { docSummary, type Doc } from '@/lib/content';
+import { useIsAdmin, useMergedContent } from '@/lib/dynamic';
 import { isBookmarked, percentDone, statusOf, useLearning, type LearningState } from '@/lib/store';
 import { EmptyState, KindIcon, LevelBadge, PageHeader, ProgressBar, StatusIcon } from '../ui';
 
@@ -24,6 +25,8 @@ function matches(s: LearningState, d: Doc, f: Filter) {
 
 export function Library() {
   const s = useLearning();
+  const admin = useIsAdmin();
+  const { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, topicsInDomain } = useMergedContent();
   const [filter, setFilter] = useState<Filter>('all');
   const total = categories.reduce((n, c) => n + docsInCategory(c.id).filter((d) => matches(s, d, filter)).length, 0);
 
@@ -55,19 +58,29 @@ export function Library() {
         Xếp theo nhóm, lĩnh vực và chủ đề. Bài học (Markdown/HTML) đọc được và tìm được toàn văn; sổ tay dạng ảnh mới tìm được theo tên.
       </PageHeader>
 
-      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Lọc theo trạng thái">
-        {FILTERS.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            role="tab"
-            aria-selected={filter === f.id}
-            onClick={() => setFilter(f.id)}
-            className={`rounded-full border px-3 py-1.5 text-sm ${filter === f.id ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface text-ink-2 hover:border-ink-2'}`}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Lọc theo trạng thái">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === f.id}
+              onClick={() => setFilter(f.id)}
+              className={`rounded-full border px-3 py-1.5 text-sm ${filter === f.id ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface text-ink-2 hover:border-ink-2'}`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        {admin && (
+          <Link
+            href="/new"
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-sm font-medium text-accent-ink hover:opacity-90"
           >
-            {f.label}
-          </button>
-        ))}
+            <Plus className="size-4" aria-hidden /> Bài viết mới
+          </Link>
+        )}
       </div>
 
       {total === 0 && (

@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Bookmark, BrainCircuit, ChevronRight, GraduationCap, Home, Layers, Library, Map, MessagesSquare, NotebookPen } from 'lucide-react';
-import { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, getDoc, topicsInDomain } from '@/lib/content';
+import { getDoc } from '@/lib/content';
+import { useMergedContent } from '@/lib/dynamic';
 import { percentDone, useLearning } from '@/lib/store';
 
 export const navItems = [
@@ -24,6 +25,7 @@ const SUBLIST = 'mb-1 ml-[1.05rem] flex flex-col gap-0.5 border-l border-line pl
 export function Sidebar() {
   const pathname = usePathname();
   const learning = useLearning();
+  const { categories, docsInCategory, docsInDomain, docsInTopic, domainsInCategory, topicsInDomain } = useMergedContent();
   const activeSlug = pathname.startsWith('/learn/') ? decodeURIComponent(pathname.split('/')[2] ?? '') : null;
   const activeDoc = activeSlug ? getDoc(activeSlug) : undefined;
   // Mọi nhánh chứa bài đang mở sẽ tự bung (trừ khi người dùng đã tự đóng).

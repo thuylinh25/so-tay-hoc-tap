@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import MiniSearch, { type SearchResult } from 'minisearch';
 import { CornerDownLeft, Hash, Search, X } from 'lucide-react';
 import { excerpt, fold, tokenize } from '@/lib/text';
-import { getDoc } from '@/lib/content';
+import { getDoc, getDomain } from '@/lib/content';
 import { KindIcon } from './ui';
 
 interface Entry {
@@ -21,20 +21,41 @@ interface Entry {
 
 let indexPromise: Promise<MiniSearch<Entry>> | null = null;
 
+interface DynListItem {
+  slug: string;
+  title: string;
+  domain: string;
+  tags?: string[];
+}
+
 function loadIndex() {
-  indexPromise ??= fetch('/search-index.json')
-    .then((r) => r.json() as Promise<Entry[]>)
-    .then((entries) => {
-      const ms = new MiniSearch<Entry>({
-        fields: ['title', 'category', 'tags', 'heading', 'text'],
-        storeFields: ['slug', 'anchor', 'title', 'category', 'heading', 'text'],
-        tokenize,
-        processTerm: (t) => fold(t),
-        searchOptions: { prefix: true, fuzzy: 0.15, combineWith: 'AND', boost: { title: 4, tags: 3, heading: 2.5, category: 1.5 } },
-      });
-      ms.addAll(entries);
-      return ms;
+  indexPromise ??= Promise.all([
+    fetch('/search-index.json').then((r) => r.json() as Promise<Entry[]>),
+    // Bài động (published) để tìm được ngay; lỗi mạng -> bỏ qua, vẫn có bài static.
+    fetch('/api/articles', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? (r.json() as Promise<{ articles: DynListItem[] }>) : { articles: [] }))
+      .catch(() => ({ articles: [] as DynListItem[] })),
+  ]).then(([entries, dyn]) => {
+    const extra: Entry[] = (dyn.articles ?? []).map((a) => ({
+      id: a.slug,
+      slug: a.slug,
+      anchor: null,
+      title: a.title,
+      category: getDomain(a.domain)?.title ?? a.domain,
+      tags: (a.tags ?? []).join(' '),
+      heading: '',
+      text: '',
+    }));
+    const ms = new MiniSearch<Entry>({
+      fields: ['title', 'category', 'tags', 'heading', 'text'],
+      storeFields: ['slug', 'anchor', 'title', 'category', 'heading', 'text'],
+      tokenize,
+      processTerm: (t) => fold(t),
+      searchOptions: { prefix: true, fuzzy: 0.15, combineWith: 'AND', boost: { title: 4, tags: 3, heading: 2.5, category: 1.5 } },
     });
+    ms.addAll([...entries, ...extra]);
+    return ms;
+  });
   return indexPromise;
 }
 

@@ -1,0 +1,15 @@
+{
+  // Cấu hình Cloudflare Pages: output tĩnh + Pages Functions (thư mục functions/) + binding D1.
+  // KHÔNG chứa secret. ADMIN_PASSWORD/SESSION_SECRET set qua `wrangler pages secret put`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "so-tay-hoc-tap",
+  "pages_build_output_dir": "out",
+  "compatibility_date": "2025-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "so-tay-hoc-tap-db",
+      "database_id": "7f6a2f18-664d-49c8-af00-fc9cb8c08bde"
+    }
+  ]
+}

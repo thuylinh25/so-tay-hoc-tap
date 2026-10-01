@@ -127,5 +127,5 @@ export function docSummary(doc: Doc) {
   const s = doc.stats;
   if (doc.kind === 'gallery') return `${s.pages} trang`;
   if (doc.kind === 'pdf') return s.questions ? `${s.questions} câu hỏi` : 'PDF';
-  return `${s.minutes} phút đọc`;
+  return s.minutes ? `${s.minutes} phút đọc` : 'Bài viết';
 }
